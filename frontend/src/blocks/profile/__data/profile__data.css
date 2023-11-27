@@ -1,0 +1,37 @@
+.profile__data {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: auto auto;
+  /* Исправила на auto auto, потому что, думаю, Вы правы касательно того, что у меня и так уже ограничена ширина заголовка и подзаголовка, а также прописаны text-overflow & co, которые не позволят сломать верстку при любом количестве вводимых символов, ну а главный посыл хорошего кода, как я поняла, не повторяться:) */
+  column-gap: 18px;
+  row-gap: 8px;
+  min-width: 294px;
+  padding-top: 0;
+  padding-left: 30px;
+  padding-right: 0;
+  padding-bottom: 0;
+  margin: 0;
+}
+
+@media screen and (max-width: 768px) {
+  .profile__data {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    width: 50%;
+    padding-top: 30px;
+    padding-bottom: 42px;
+    padding-left: 0;
+    column-gap: 15px;
+    row-gap: 14px;
+  }
+}
+
+@media screen and (max-width: 320px) {
+  .profile__data {
+    padding-top: 22px;
+    padding-bottom: 36px;
+  }
+}

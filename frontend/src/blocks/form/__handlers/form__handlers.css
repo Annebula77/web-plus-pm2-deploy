@@ -1,0 +1,14 @@
+.form__handlers {
+  display: flex;
+  box-sizing: border-box;
+  border: none;
+  justify-content: center;
+  padding: 18px 36px 37px;
+  margin: 0;
+}
+
+@media screen and (max-width: 768px) {
+  .form__handlers {
+    padding: 45px 22px 25px;
+  }
+}
