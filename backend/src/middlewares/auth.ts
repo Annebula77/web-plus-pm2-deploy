@@ -1,27 +1,24 @@
 import jwt from 'jsonwebtoken';
-import { Request, Response, NextFunction } from 'express';
-import { JWT_SECRET } from '../config';
-import UnauthorizedError from '../errors/unauthorized-error';
+import { NextFunction, Request, Response } from 'express';
+import { AUTHORIZATION_NEEDED_MESSAGE } from '../utils/consts';
+import { jwtSecret } from '../controllers/users';
+import UnauthorizedError from '../errors/unauthorizedError';
 
-interface JwtPayload {
-  _id: string
-}
+const AuthorizedUser = (req: Request, res: Response, next: NextFunction) => {
+  const { authorization } = req.headers;
 
-const auth = (req: Request, res: Response, next: NextFunction) => {
+  if (!authorization || !authorization.startsWith('Bearer ')) {
+    throw new UnauthorizedError(AUTHORIZATION_NEEDED_MESSAGE);
+  }
+
+  const token = authorization.replace('Bearer ', '');
   try {
-    let token = req.cookies.jwt || req.headers.authorization;
-    if (!token) {
-      throw new UnauthorizedError('Токен не передан');
-    }
-    token = token.replace('Bearer ', '');
-    let payload: JwtPayload | null = null;
-
-    payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const payload = jwt.verify(token, jwtSecret);
     req.user = payload;
-    next();
-  } catch (e) {
-    next(new UnauthorizedError('Необходима авторизация'));
+    return next();
+  } catch (err) {
+    return next(new UnauthorizedError(AUTHORIZATION_NEEDED_MESSAGE));
   }
 };
 
-export default auth;
+export default AuthorizedUser;

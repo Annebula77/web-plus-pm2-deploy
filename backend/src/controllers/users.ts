@@ -1,94 +1,103 @@
-import bcrypt from 'bcryptjs';
+import { NextFunction, Request, Response } from 'express';
+import mongoose, { ObjectId } from 'mongoose';
+import 'dotenv/config';
+import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import {
-  Request,
-  Response,
-  NextFunction,
-} from 'express';
 import User from '../models/user';
-import { JWT_SECRET } from '../config';
-import BadRequestError from '../errors/bad-request-error';
-import NotFoundError from '../errors/not-found-error';
-import ConflictError from '../errors/conflict-error';
+import {
+  STATUS_SUCCESS,
+  STATUS_CREATED,
+  VALIDATION_ERROR_MESSAGE,
+  WRONG_EMAIL_PASSWORD_MESSAGE,
+  USER_EXISTS_MESSAGE,
+} from '../utils/consts';
+import userUpdateDecorator from '../decorators/userDecorator';
+import UnauthorizedError from '../errors/unauthorizedError';
+import UserReturnDecorator from '../decorators/userReturnDecorator';
+import ValidationError from '../errors/validationError';
+import UserExistsError from '../errors/userExists';
 
-const login = (req: Request, res: Response, next: NextFunction) => {
-  const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
-    .then((user) => {
-      const token = jwt.sign({ _id: user._id }, JWT_SECRET);
-      return res
-        .cookie('jwt', token, {
+export const jwtSecret = process.env.JWT_SECRET as string;
 
-          maxAge: 3600000,
-          httpOnly: true,
-          sameSite: true,
-        })
-        .send({ token });
-    })
-    .catch(next);
+export const getUsers = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const users = await User.find({});
+    return res.status(STATUS_SUCCESS).send(users);
+  } catch (error) {
+    return next(error);
+  }
 };
 
-const createUser = (req: Request, res: Response, next: NextFunction) => {
-  const {
-    name, about, avatar, password, email,
-  } = req.body;
+export const getUserById = UserReturnDecorator(async (req: Request) => {
+  const { id } = req.params;
+  return User.findById(id);
+});
 
-  bcrypt.hash(password, 10)
-    .then((hash) => User.create({
+export const getAuthUser = UserReturnDecorator(async (req: Request) => {
+  const userId = (req.user as { _id: string | ObjectId })._id;
+  return User.findById(userId);
+});
+
+export const createUser = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const {
+      name, about, avatar, email, password,
+    } = req.body;
+
+    // можно и без этой проверки, но мне тогда нужно переделать везде выброс ошибок
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new UserExistsError(USER_EXISTS_MESSAGE);
+    }
+
+    const hash = await bcrypt.hash(password, 10);
+
+    const newUser = await User.create({
       name, about, avatar, email, password: hash,
-    }))
-    .then((data) => res.status(201).send(data))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(err.message));
-      } else if (err.code === 11000) {
-        next(new ConflictError('Пользователь с данным email уже существует'));
-      } else {
-        next(err);
-      }
     });
+
+    return res.status(STATUS_CREATED).send(newUser);
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      const validationError = new ValidationError(VALIDATION_ERROR_MESSAGE, error);
+      return next(validationError);
+    }
+    return next(error);
+  }
 };
 
-const getUserData = (id: string, res: Response, next: NextFunction) => {
-  User.findById(id)
-    .orFail(() => new NotFoundError('Пользователь по заданному id отсутствует в базе'))
-    .then((users) => res.send(users))
-    .catch(next);
-};
+export const updateUserInfo = userUpdateDecorator((req: Request) => {
+  const { name, about } = req.body;
+  return { name, about };
+});
 
-const getUser = (req: Request, res: Response, next: NextFunction) => {
-  getUserData(req.params.id, res, next);
-};
+export const updateUserAvatar = userUpdateDecorator((req: Request) => {
+  const { avatar } = req.body;
+  return { avatar };
+});
 
-const getCurrentUser = (req: Request, res: Response, next: NextFunction) => {
-  getUserData(req.user._id, res, next);
-};
+export const login = async (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+  try {
+    const user = await User.findOne({ email }).select('+password');
+    if (!user || !user.password) {
+      throw new UnauthorizedError(WRONG_EMAIL_PASSWORD_MESSAGE);
+    }
 
-const updateUserData = (req: Request, res: Response, next: NextFunction) => {
-  const { user: { _id }, body } = req;
-  User.findByIdAndUpdate(_id, body, { new: true, runValidators: true })
-    .orFail(() => new NotFoundError('Пользователь по заданному id отсутствует в базе'))
-    .then((user) => res.send(user))
-    .catch(next);
-};
+    const matched = await bcrypt.compare(password, user.password);
 
-const updateUserInfo = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => updateUserData(req, res, next);
-
-const updateUserAvatar = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => updateUserData(req, res, next);
-
-export {
-  login,
-  updateUserInfo,
-  updateUserAvatar,
-  createUser,
-  getUser,
-  getCurrentUser,
+    if (!matched) {
+      throw new UnauthorizedError(WRONG_EMAIL_PASSWORD_MESSAGE);
+    }
+    const token = jwt.sign({ _id: user._id }, jwtSecret, { expiresIn: '7d' });
+    res.cookie('jwt', token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      secure: true, // если используется HTTPS
+      sameSite: 'strict',
+    });
+    res.send({ token });
+  } catch (err) {
+    next(err);
+  }
 };

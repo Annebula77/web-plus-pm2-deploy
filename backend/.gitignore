@@ -12,6 +12,11 @@ node_modules
 # Optional REPL history
 .DS_Store
 .idea
+.vscode
+
+# Typescript build result
 dist
+
+# secret directory
 .env
-.env.deploy
+ecosystem.config.js

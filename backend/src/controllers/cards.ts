@@ -1,64 +1,67 @@
-import {
-  Request, Response, NextFunction,
-} from 'express';
+import { NextFunction, Request, Response } from 'express';
+import mongoose, { ObjectId } from 'mongoose';
 import Card from '../models/card';
-import BadRequestError from '../errors/bad-request-error';
-import NotFoundError from '../errors/not-found-error';
-import ForbiddenError from '../errors/forbidden-error';
+import {
+  STATUS_SUCCESS,
+  STATUS_CREATED,
+  CARD_NOT_FOUND_MESSAGE,
+  VALIDATION_ERROR_MESSAGE,
+  CARD_DELITION_SUCCESS_MESSAGE,
+  STATUS_FORBIDDEN_MESSAGE,
+} from '../utils/consts';
+import modifyCardLikes from '../decorators/cardDecorator';
+import NotFoundError from '../errors/notfoundError';
+import ForbiddenError from '../errors/forbiddenError';
+import ValidationError from '../errors/validationError';
 
-const getCards = (req: Request, res: Response, next: NextFunction) => {
-  Card.find({})
-    .then((cards) => res.send(cards))
-    .catch(next);
+export const getCards = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const cards = await Card.find({})
+      .populate(['owner', 'likes']);
+    return res.status(STATUS_SUCCESS).send(cards);
+  } catch (error) {
+    return next(error);
+  }
 };
 
-const createCard = (req: Request, res: Response, next: NextFunction) => {
-  const owner = req.user._id;
-  const { name, link } = req.body;
-  Card.create({ name, link, owner })
-    .then((card) => res.status(201).send(card))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(err.message));
-      } else {
-        next(err);
-      }
-    });
+export const createCard = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { name, link } = req.body;
+    const owner = (req.user as { _id: string | ObjectId })._id;
+    const newCard = await Card.create({ name, link, owner });
+    return res.status(STATUS_CREATED).send(newCard);
+  } catch (error) {
+    if (error instanceof mongoose.Error.ValidationError) {
+      const validationError = new ValidationError(VALIDATION_ERROR_MESSAGE, error);
+      return next(validationError);
+    }
+    return next(error);
+  }
 };
 
-const deleteCard = (req: Request, res: Response, next: NextFunction) => {
-  const { id } = req.params;
-  Card.findById(id)
-    .orFail(() => new NotFoundError('Нет карточки по заданному id'))
-    .then((card) => {
-      if (card.owner.toString() !== req.user._id) {
-        throw new ForbiddenError('Нельзя удалить чужую карточку');
-      } else {
-        return Card.deleteOne({ _id: card._id })
-          .then(() => res.send(card));
-      }
-    })
-    .catch(next);
+export const deleteCard = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { cardId } = req.params;
+
+    const card = await Card.findById(cardId);
+
+    if (!card) {
+      throw new NotFoundError(CARD_NOT_FOUND_MESSAGE);
+    }
+
+    const userId = (req.user as { _id: string | ObjectId })._id;
+
+    if (card.owner.toString() !== userId) {
+      throw new ForbiddenError(STATUS_FORBIDDEN_MESSAGE);
+    }
+
+    await Card.deleteOne({ _id: card._id });
+
+    return res.status(STATUS_SUCCESS).send({ message: CARD_DELITION_SUCCESS_MESSAGE });
+  } catch (error) {
+    return next(error);
+  }
 };
 
-const updateLike = (req: Request, res: Response, next: NextFunction, method: string) => {
-  const { params: { id } } = req;
-  Card.findByIdAndUpdate(id, { [method]: { likes: req.user._id } }, { new: true })
-    .orFail(() => new NotFoundError('Нет карточки по заданному id'))
-    .then((card) => {
-      res.send(card);
-    })
-    .catch(next);
-};
-
-const likeCard = (req: Request, res: Response, next: NextFunction) => updateLike(req, res, next, '$addToSet');
-
-const dislikeCard = (req: Request, res: Response, next: NextFunction) => updateLike(req, res, next, '$pull');
-
-export {
-  getCards,
-  createCard,
-  deleteCard,
-  likeCard,
-  dislikeCard,
-};
+export const likeCard = modifyCardLikes('$addToSet');
+export const dislikeCard = modifyCardLikes('$pull');

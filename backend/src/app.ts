@@ -1,26 +1,37 @@
-import 'dotenv/config';
-
 import express from 'express';
 import mongoose from 'mongoose';
-import cookieParser from 'cookie-parser';
-import { errors } from 'celebrate';
-// import cors from 'cors';
-import errorHandler from './middlewares/error-handler';
-import { DB_ADDRESS } from './config';
-import routes from './routes';
+import path from 'path';
+import 'dotenv/config';
+import router from './routes';
+import { errorLogger, requestLogger } from './logger/expressLogger';
+import ErrorHub from './errors/errorHub';
+import user from './models/user';
+import card from './models/card';
 
-const { PORT = 3000 } = process.env;
 const app = express();
-mongoose.connect(DB_ADDRESS);
-
-// Только для локальных тестов. Не используйте это в продакшене
-// app.use(cors())
+const { MESTO_MONGOD, PORT } = process.env;
+app.use(requestLogger);
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(routes);
-app.use(errors());
-app.use(errorHandler);
+app.use(router);
+app.use(errorLogger);
+app.use(ErrorHub);
 
-// eslint-disable-next-line no-console
-app.listen(PORT, () => console.log('ok'));
+const connect = async () => {
+  mongoose.set('strictQuery', true);
+  await mongoose.connect(MESTO_MONGOD as string);
+  // Инициализируем индексы для модели
+  await user.init();
+  await card.init();
+
+  // eslint-disable-next-line no-console
+  console.log('Подключились к базе');
+
+  // eslint-disable-next-line no-console
+  await app.listen(PORT);
+
+  // eslint-disable-next-line no-console
+  console.log('Сервер запущен на порту:', PORT);
+};
+
+connect();
