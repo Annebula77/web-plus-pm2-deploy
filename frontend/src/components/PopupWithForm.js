@@ -1,26 +1,31 @@
-import React from 'react';
+import Popup from "./Popup.js";
 
-function PopupWithForm({
-  title,
-  name,
-  isOpen,
-  buttonText = 'Сохранить',
-  onSubmit,
-  onClose,
-  children,
-}) {
-  return (
-    <div className={`popup popup_type_${name} ${isOpen ? 'popup_is-opened' : ''}`}>
-      <div className="popup__content">
-        <form className="popup__form" name={name} noValidate onSubmit={onSubmit}>
-          <button type="button" className="popup__close" onClick={onClose}></button>
-          <h3 className="popup__title">{title}</h3>
-          {children}
-          <button type="submit" className="button popup__button">{buttonText}</button>
-        </form>
-      </div>
-    </div>
-  );
-}
+export default class PopupWithForm extends Popup {
+  constructor(popupSelector, callback) {
+    super(popupSelector);
+    this._callback = callback;
+    this._form = this._popup.querySelector('.form');
+    this._formList = this._form.querySelectorAll('.form__input');
+  };
 
-export default PopupWithForm;
+  closePopup() {
+    super.closePopup();
+    this._form.reset();
+  };
+
+  _getInputValues() {
+    this._inputValues = {};
+    this._formList.forEach(input => {
+      this._inputValues[input.name] = input.value;
+    });
+    return this._inputValues;
+  };
+
+  setEventListeners() {
+    super.setEventListeners();
+    this._popup.addEventListener('submit', (evt) => {
+      this._callback(evt, this._getInputValues());
+    });
+  };
+
+};
