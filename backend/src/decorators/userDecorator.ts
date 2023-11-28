@@ -23,6 +23,9 @@ const userUpdateDecorator = (dataExtractor: (req: Request) => UserData) => async
 ) => {
   try {
     const data = dataExtractor(req);
+    // if (!req.user) {
+    //   throw new Error('Пользователь не аутентифицирован');
+    // }
     const userId = await (req.user as { _id: string | ObjectId })._id;
     const updatedUser = await updateUser(userId, data);
     return res.status(STATUS_SUCCESS).send(updatedUser);

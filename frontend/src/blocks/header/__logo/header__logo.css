@@ -1,27 +1,13 @@
 .header__logo {
   width: 142px;
-  justify-self: flex-start;
-  padding: 45px 0 41px;
+  height: 33px;
+  object-fit: contain;
 }
 
-@media screen and (max-width: 1024px) {
+@media screen and (max-width: 480px) {
   .header__logo {
-    padding-left: 16px;
-  }
-}
-@media screen and (max-width: 768px) {
-  .header__logo {
-    width: 110px;
-    padding-top: 35px;
-    padding-left: 20px;
-    padding-bottom: 31.6px;
-  }
-}
-
-@media screen and (max-width: 320px) {
-  .header__logo {
-    padding-top: 28px;
-    padding-left: 27px;
-    width: 103.74px;
+    width: 104px;
+    height: 24px;
+    margin: 0 0 0 7px;
   }
 }

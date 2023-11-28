@@ -1,18 +1,6 @@
+@import url('./__content/page__content.css');
+@import url('./__section/page__section.css');
+
 .page {
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  font-family: "Inter", Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-  -ms-text-size-adjust: 100%;
-  -moz-text-size-adjust: 100%;
-  text-rendering: optimizeLegibility;
-  padding: 0;
-  background-color: #000000;
+  background: #000;
 }

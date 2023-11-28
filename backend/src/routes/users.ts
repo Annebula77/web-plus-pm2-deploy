@@ -7,10 +7,10 @@ import { avatarValidator, userIdValidator, profileValidator } from '../utils/val
 
 const userRouter = Router();
 
-userRouter.get('/', AuthorizedUser, getUsers);
+userRouter.get('/', getUsers);
 
 userRouter.get('/:userId', userIdValidator, getUserById);
-userRouter.get('/me', AuthorizedUser, getAuthUser);
+userRouter.get('/me', getAuthUser);
 
 userRouter.patch('/me', profileValidator, AuthorizedUser, updateUserInfo);
 userRouter.patch('/me/avatar', avatarValidator, AuthorizedUser, updateUserAvatar);

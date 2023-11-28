@@ -29,12 +29,16 @@ export const getUsers = async (req: Request, res: Response, next: NextFunction) 
 };
 
 export const getUserById = UserReturnDecorator(async (req: Request) => {
-  const { id } = req.params;
-  return User.findById(id);
+  console.log('getUserById req.params:', req.params); // Логируем параметры запроса
+  const { _id } = req.params;
+  return User.findById(_id);
 });
 
 export const getAuthUser = UserReturnDecorator(async (req: Request) => {
+  console.log('getAuthUser called with req.user:', req.user);
   const userId = (req.user as { _id: string | ObjectId })._id;
+  console.log('getAuthUser req.user:', req.user); // Логируем информацию о пользователе
+
   return User.findById(userId);
 });
 

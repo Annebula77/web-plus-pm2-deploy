@@ -1,6 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
 import path from 'path';
+import cors from 'cors';
 import 'dotenv/config';
 import router from './routes';
 import { errorLogger, requestLogger } from './logger/expressLogger';
@@ -13,6 +14,7 @@ const { MESTO_MONGOD, PORT } = process.env;
 app.use(requestLogger);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
+app.use(cors());
 app.use(router);
 app.use(errorLogger);
 app.use(ErrorHub);

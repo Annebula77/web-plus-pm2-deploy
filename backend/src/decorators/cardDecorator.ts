@@ -9,11 +9,17 @@ import {
 
 const modifyCardLikes = (operation: '$addToSet' | '$pull') => async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+
+    const { cardId } = req.params;
+
+    if (!req.user) {
+      throw new Error('Пользователь не аутентифицирован');
+    }
     const userId = (req.user as { _id: string | ObjectId })._id;
+    console.log(userId)
 
     const updatedCard = await Card.findByIdAndUpdate(
-      id,
+      cardId,
       { [operation]: { likes: userId } },
       { new: true },
     )

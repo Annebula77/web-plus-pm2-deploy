@@ -15,6 +15,7 @@ const UserReturnDecorator = (
 ) => async (req: Request, res: Response, next: NextFunction) => {
   try {
     const user = await returnLogic(req);
+    console.log('UserReturnDecorator', user);
     if (!user) throw new NotFoundError(USER_NOT_FOUND_MESSAGE);
     return res.status(STATUS_SUCCESS).send(user);
   } catch (error) {
