@@ -6,8 +6,7 @@ module.exports = {
   apps: [
     {
       name: 'mesto-backend',
-      script: 'npm',
-      args: 'start',
+      script: 'dist/app.js',
       // watch: true, // Если нужен режим отслеживания изменений
         env: {
         NODE_ENV: 'production',
@@ -24,7 +23,8 @@ module.exports = {
       ref: 'origin/master',
       repo: REPO,
       path: '~/backend',
-      'post-deploy': 'npm install && pm2 startOrReload ecoconfig.js --env production', // Команды после деплоя
+      'post-deploy': 'npm install && npm run build && pm2 startOrReload ecoconfig.js --env production',
+
     },
   },
 };
