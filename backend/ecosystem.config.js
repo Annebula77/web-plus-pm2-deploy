@@ -1,6 +1,6 @@
-require('dotenv').config({ path: '.env.deploy' });
+require('dotenv').config({path: '.env.deploy'});
 
-const { MESTO_MONGOD, PORT, JWT_SECRET, SERVER_SSH, DEPLOY_USER, DEPLOY_REF, DEPLOY_REPO, PATH, DEPLOY_HOST} = process.env;
+const { MESTO_MONGOD, PORT, JWT_SECRET, SERVER_SSH, DEPLOY_USER, DEPLOY_REF, DEPLOY_REPO, DEPLOY_PATH_BACKEND, } = process.env;
 
 module.exports = {
   apps: [
@@ -19,12 +19,12 @@ module.exports = {
   deploy: {
     production: {
       user: DEPLOY_USER,
-      host: DEPLOY_HOST,
+      host: SERVER_SSH,
       ref: DEPLOY_REF,
       repo: DEPLOY_REPO,
-      path: PATH,
-      'post-deploy': 'npm install && cp ../.env.deploy .env && pm2 startOrReload ecosystem.config.js --env production',
-
+      path: DEPLOY_PATH_BACKEND,
+      "pre-deploy-local": `scp .env ${DEPLOY_USER}@${SERVER_SSH}:${DEPLOY_PATH_BACKEND}/source`,
+      "post-deploy": `cd ${DEPLOY_PATH_BACKEND}/source/backend && npm i && npm run build && pm2 startOrRestart ecosystem.config.js && pm2 save`,
     },
   },
 };
