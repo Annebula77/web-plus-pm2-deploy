@@ -1,6 +1,6 @@
-require('dotenv').config();
+require('dotenv').config({ path: '.env.deploy' });
 
-const { MESTO_MONGOD, PORT, JWT_SECRET, SERVER_SSH } = process.env;
+const { MESTO_MONGOD, PORT, JWT_SECRET, SERVER_SSH, DEPLOY_USER, DEPLOY_REF, DEPLOY_REPO, PATH} = process.env;
 
 module.exports = {
   apps: [
@@ -18,13 +18,12 @@ module.exports = {
   ],
   deploy: {
     production: {
-      user: 'gohar',
+      user: DEPLOY_USER,
       host: SERVER_SSH,
-      ref: 'origin/master',
-      repo: 'https://github.com/Annebula77/web-plus-pm2-deploy/tree/master/backend',
-      path: '~/backend',
-      'pre-deploy-local': "npm run build",
-      'post-deploy': 'npm install && npm run build && pm2 startOrReload ecoconfig.js --env production',
+      ref: DEPLOY_REF,
+      repo: DEPLOY_REPO,
+      path: PATH,
+      'post-deploy': 'npm install && cp ../.env.backend .env && pm2 startOrReload ecosystem.config.js --env production',
 
     },
   },
