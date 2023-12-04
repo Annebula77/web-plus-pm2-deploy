@@ -23,7 +23,7 @@ module.exports = {
       host: SERVER_SSH,
       ref: 'origin/master',
       repo: REPO,
-      path: '/backend',
+      path: '~/backend',
       'post-deploy': 'npm install && pm2 startOrReload ecoconfig.js --env production', // Команды после деплоя
     },
   },
