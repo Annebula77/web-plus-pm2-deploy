@@ -19,4 +19,4 @@ dist
 
 # secret directory
 .env
-ecosystem.config.js
+

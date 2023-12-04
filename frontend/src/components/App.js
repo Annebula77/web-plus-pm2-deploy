@@ -32,6 +32,7 @@ function App() {
 
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const [email, setEmail] = React.useState("");
+  const [token, setToken] = React.useState(localStorage.getItem("jwt"));
 
   const history = useHistory();
 
@@ -149,30 +150,28 @@ function App() {
 
     history.push("/signin");
   }
-  const initializeApp = async () => {
-    try {
-      const token = localStorage.getItem("jwt");
-      if (token) {
-        const res = await api.checkToken(token);
-        api.setToken(token);
-        setEmail(res.email);
-        setIsLoggedIn(true);
-
-        const [cardData, userData] = await api.getAppInfo();
-
-        setCurrentUser(userData);
-        setCards(cardData);
-      }
-    } catch (err) {
-      console.error("Ошибка инициализации приложения:", err);
-      localStorage.removeItem("jwt");
-      setIsLoggedIn(false);
-    }
-  };
-
   React.useEffect(() => {
-    initializeApp();
-  }, []);
+    if (token) {
+      api
+        .checkToken(token)
+        .then((res) => {
+          console.log(res)
+          api.setToken(token);
+          setEmail(res.email);
+          setIsLoggedIn(true);
+          return api.getAppInfo()
+        })
+        .then(([cardData, userData]) => {
+            setCurrentUser(userData);
+            setCards(cardData);
+            history.push("/");
+        })
+        .catch((err) => {
+          localStorage.removeItem("jwt");
+          console.log(err);
+        });
+    }
+  }, [history, token]);
 
 
 
