@@ -23,6 +23,7 @@ module.exports = {
       ref: 'origin/master',
       repo: REPO,
       path: '~/backend',
+      'pre-deploy-local': "npm run build",
       'post-deploy': 'npm install && npm run build && pm2 startOrReload ecoconfig.js --env production',
 
     },
