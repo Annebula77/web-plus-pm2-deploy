@@ -23,7 +23,7 @@ module.exports = {
       ref: DEPLOY_REF,
       repo: DEPLOY_REPO,
       path: PATH,
-      'post-deploy': 'npm install && cp ../.env.backend .env && pm2 startOrReload ecosystem.config.js --env production',
+      'post-deploy': 'npm install && cp ../.env.deploy .env && pm2 startOrReload ecosystem.config.js --env production',
 
     },
   },
