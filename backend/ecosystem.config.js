@@ -1,6 +1,6 @@
 require('dotenv').config({ path: '.env.deploy' });
 
-const { MESTO_MONGOD, PORT, JWT_SECRET, SERVER_SSH, DEPLOY_USER, DEPLOY_REF, DEPLOY_REPO, PATH} = process.env;
+const { MESTO_MONGOD, PORT, JWT_SECRET, SERVER_SSH, DEPLOY_USER, DEPLOY_REF, DEPLOY_REPO, PATH, DEPLOY_HOST} = process.env;
 
 module.exports = {
   apps: [
@@ -19,7 +19,7 @@ module.exports = {
   deploy: {
     production: {
       user: DEPLOY_USER,
-      host: SERVER_SSH,
+      host: DEPLOY_HOST,
       ref: DEPLOY_REF,
       repo: DEPLOY_REPO,
       path: PATH,
