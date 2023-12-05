@@ -1,11 +1,15 @@
 # Деплой приложения на сервер с использованием pm2
 
-Ip: 51.250.91.102
+ip: 51.250.91.102
 
 Frontend: annebula77.students.nomoredomainsmonster.ru
+
 Backend: api.annebula77.students.nomoredomainsmonster.ru
 
+На сервере для проверки создан пользователь с правами sudo и домашней директорией. Данные ниже:
+
 пользоваетль: practicum
+
 пароль: practicum
 
 Стартеркит проекта по автоматизации деплоя фронтенда и бэкенда при помощи pm2 (pm2 deploy)
