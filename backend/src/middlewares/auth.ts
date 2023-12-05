@@ -6,7 +6,7 @@ import UnauthorizedError from '../errors/unauthorizedError';
 
 const AuthorizedUser = (req: Request, res: Response, next: NextFunction) => {
   const { authorization } = req.headers;
-  console.log('аунтификация', authorization);
+
 
   if (!authorization || !authorization.startsWith('Bearer ')) {
     throw new UnauthorizedError(AUTHORIZATION_NEEDED_MESSAGE);
@@ -16,7 +16,7 @@ const AuthorizedUser = (req: Request, res: Response, next: NextFunction) => {
   try {
     const payload = jwt.verify(token, jwtSecret);
     req.user = payload;
-    console.log('AuthorizedUser payload:', payload); // Логируем payload
+
     return next();
   } catch (err) {
     return next(new UnauthorizedError(AUTHORIZATION_NEEDED_MESSAGE));

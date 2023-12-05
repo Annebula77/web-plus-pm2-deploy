@@ -9,8 +9,8 @@ const userRouter = Router();
 
 userRouter.get('/', getUsers);
 
-userRouter.get('/:userId', userIdValidator, getUserById);
-userRouter.get('/me', getAuthUser);
+
+userRouter.get('/me', AuthorizedUser, getAuthUser);
 
 userRouter.patch('/me', profileValidator, AuthorizedUser, updateUserInfo);
 userRouter.patch('/me/avatar', avatarValidator, AuthorizedUser, updateUserAvatar);

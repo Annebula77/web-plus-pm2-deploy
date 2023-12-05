@@ -32,13 +32,34 @@ function App() {
 
   const [isLoggedIn, setIsLoggedIn] = React.useState(false);
   const [email, setEmail] = React.useState("");
-  const [token, setToken] = React.useState(localStorage.getItem("jwt"));
+  const [token, setToken] = React.useState(() => localStorage.getItem("jwt"));
 
   const history = useHistory();
 
-
-
-
+  React.useEffect(() => {
+    if (token) {
+      api
+        .checkToken(token)
+        .then((res) => {
+          console.log(res)
+          api.setToken(token);
+          setEmail(res.email);
+          setIsLoggedIn(true);
+          return api.getAppInfo()
+        })
+        .then(([cardData, userData]) => {
+          console.log(userData);
+          console.log(userData);
+            setCurrentUser(userData);
+            setCards(cardData);
+            history.push("/");
+        })
+        .catch((err) => {
+          localStorage.removeItem("jwt");
+          console.log(err);
+        });
+    }
+  }, [history, token]);
 
   function handleEditProfileClick() {
     setIsEditProfilePopupOpen(true);
@@ -135,6 +156,7 @@ function App() {
       .then((res) => {
         setIsLoggedIn(true);
         setEmail(email);
+        setToken(res.token);
         history.push("/");
       })
       .catch((err) => {
@@ -150,28 +172,7 @@ function App() {
 
     history.push("/signin");
   }
-  React.useEffect(() => {
-    if (token) {
-      api
-        .checkToken(token)
-        .then((res) => {
-          console.log(res)
-          api.setToken(token);
-          setEmail(res.email);
-          setIsLoggedIn(true);
-          return api.getAppInfo()
-        })
-        .then(([cardData, userData]) => {
-            setCurrentUser(userData);
-            setCards(cardData);
-            history.push("/");
-        })
-        .catch((err) => {
-          localStorage.removeItem("jwt");
-          console.log(err);
-        });
-    }
-  }, [history, token]);
+
 
 
 

@@ -131,6 +131,8 @@ class Api {
       })
     }
 
+
+
     checkToken(token) {
       return fetch(`${this._address}/users/me`, {
         method: 'GET',
@@ -144,5 +146,5 @@ class Api {
   }
   // Замените на адрес вашего бэкенда
   const api = new Api('https://api.annebula77.students.nomoredomainsmonster.ru');
-
+  // const api = new Api('http://localhost:3000');
   export default api;
